@@ -201,8 +201,7 @@ ERC20 Balance: 0.0 BTC
 
 **Bitcoin Testnet Transaction ID**: [`ed470838b312d5984304b8ca4734e223235d115cfa5e0a368b907287732110b8`](https://blockstream.info/testnet/tx/ed470838b312d5984304b8ca4734e223235d115cfa5e0a368b907287732110b8)
 
-![bitcoin-tx](https://github.com/user-attachments/assets/efbfd3f5-883e-4544-9364-efce775c7cc1)
-
+![bitcoin-tx](https://github.com/user-attachments/assets/09c4608a-c124-4814-966c-ae0829868fcb)
 
 ### Demo Script Execution
 ```
@@ -283,7 +282,8 @@ Local CLI integration test completed successfully!
 ```
 
 #### Screencast Record
-[merlin-demo-execution.webm](https://github.com/user-attachments/assets/20f117d3-45fe-4846-9930-fba138ee1490)
+[merlin-demo-execution.webm](https://github.com/user-attachments/assets/ddae1b23-519f-4a76-9c4c-03c2255af22b)
+
 
 ### Balance ERC20 check
 
