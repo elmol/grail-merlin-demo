@@ -301,6 +301,147 @@ You can view the PegIn transaction on the Merlin chain explorer:
 https://testnet-scan.merlinchain.io/tx/0x872dbe30829dd704a25269be2e579d48df4245354dfaa405e084463be26a3eb1
 ![merlin-tx](https://github.com/user-attachments/assets/6526ed77-2631-4354-9575-61b168124587)
 
+## Ensuring Secure PegIn Validations  
+
+The bridge relies on a network of operators / agents who ensure the creation, configuration, and confirmation of PegIn requests, backed by the Bitsnark protocol.  
+
+Additionally, the PegIn process leverages zk-SNARK proofs and a Bitcoin oracle to prevent invalid transactions.  
+
+zk-SNARK proofs validate the Bitcoin transaction by verifying its inclusion in a valid block. These proofs ensure the PegIn address, deposited amount, block header, transaction Merkle tree, and outputs meet all criteria for Bitcoin blockchain inclusion.  
+
+The onchain Bitcoin oracle maintains the canonical Bitcoin blockchain and verifies that the block containing the transaction has been finalized with sufficient confirmations, ensuring the Bitcoin deposit is irreversible before minting ERC20 tokens on the EVM side.
+
+### Fake PegIn Demo
+We assume that the agents have already created and confirmed a PegIn request for a specific address. As shown below:
+
+PegIn request created and confirmed
+
+```
+{
+    "peginAddress": "0x27ace467dafd4ba039039b7f735f4a92d502adf1fd6b425d36f9bb60a177854b",
+    "amount": "5000000"
+}
+```
+
+```
+============================================================
+Creating a PegIn request using the JSON file
+============================================================
+$ ./cli.sh create-pegin -f "./data/merlin-demo/pegin_request.json"
+⠹ Create PegIn request started...
+PegIn request created successfully.
+Request ID: 0x27ace467dafd4ba039039b7f735f4a92d502adf1fd6b425d36f9bb60a177854b
+✔ Create PegIn request completed successfully.
+Create PegIn request: 12.259s
+```
+
+```
+============================================================
+Confirming the PegIn request with all agents
+============================================================
+$ npm run test:confirm "0x27ace467dafd4ba039039b7f735f4a92d502adf1fd6b425d36f9bb60a177854b" "./data/merlin-demo/agents_local.json" --silent
+Pegin request confirmed
+```
+
+Now, the requesting agent is now attempting to falsify the PegIn by providing a fake deposit.
+
+#### Invalid or fake zk-proof  
+
+We assume that the requesting agent has generated a zk-proof for a different PegIn or an invalid one and is attempting to mint ERC20 tokens using this proof.  
+
+Generate a proof for `0xf37cbba1f066ec233d3070728cd894cc466263a79045b8f9ca198bea8b81d0a1` valid pegin.
+
+```
+$ ./cli.sh generate-pegin-proof "0xf37cbba1f066ec233d3070728cd894cc466263a79045b8f9ca198bea8b81d0a1"
+⠙ Generate PegIn proof started...
+Proof file path: /home/elmol/Documents/wakeup/bitsnark/grail-contracts/packages/agent-cli/data/merlin-demo/0xf37cbba1f066ec233d3070728cd894cc466263a79045b8f9ca198bea8b81d0a1_proof.json
+✔ Generate PegIn proof completed successfully.
+Generate PegIn proof: 53.681s
+```
+Then rename the file `0xf37cbba1f066ec233d3070728cd894cc466263a79045b8f9ca198bea8b81d0a1_proof` to  `0x27ace467dafd4ba039039b7f735f4a92d502adf1fd6b425d36f9bb60a177854b` pegin.
+
+And try to mint ERC20 using this proof.
+
+```
+$ ./cli.sh perform-pegin "0x27ace467dafd4ba039039b7f735f4a92d502adf1fd6b425d36f9bb60a177854b" "0x00000000000000000001b4b9f79123df985e564b11843c52e1262740f7cc732a"
+⠧ Perform PegIn transaction started...Error performing PegIn transaction
+
+Error: Exception while processing PegIn on blockchain, Error: Error: execution reverted (unknown custom error) (action="estimateGas", data="0x8355494700000000000000000000000000000000000000000000000000000000000000200000000000000000000000000000000000000000000000000000000000000019496e76616c696420506567696e20536e61726b2050726f6f6600000000000000", reason=null, transaction={ "data": "0xb37e111027ace467dafd4ba039039b7f735f4a92d502adf1fd6b425d36f9bb60a177854b00000000000000000001b4b9f79123df985e564b11843c52e1262740f7cc732a065397d6034e1def93e00b3dade5253658f0fcc9bda95bce01e8ea0f1d58f3180d96cb89ae616ebacb542f5cb9b9bdb3f74b445eb8a7b57844686e4c75eb2626291f88623bec6d493e78a5e377c3bd856e0bfb191e11c5bd1af7e44a1f5d025104b3d586777232f1235a302e02a3ad63516c46c06fed9428fde56c7df8dfbb992ade0a2dbf9a2e87b8a1c5ed59aa1c7c9003117cbede044c1c1be70ea8daa87302efbeef6c773814dd79da55acb929c9c15d7b4c4aa0747a38574f828da5e6d5228207c59fc264f34f633018af9d4eb9eb70d053faf802f9496de9ee96c8e5cd177450ca07679eff9c434e497a3b65f05762d7fe2842106d0be77efa57b0aa92", "from": "0xAAfD7D37B78E245aC85a230e161b512b0140daF7", "to": "0xB00dAB5C8b4b561cCdb7F43f4853144A05A099B0" }, invocation=null, revert=null, code=CALL_EXCEPTION, version=6.13.3)
+```
+
+**ERROR:** `UIG Invalid Pegin Snark Proof`
+ 
+In this case, the bridge will reject the proof because it does not correspond to a valid PegIn transaction. The zk-SNARK verification ensures that the proof matches the specific PegIn address, deposited amount, and block hash, preventing the minting of tokens based on invalid or mismatched data.
+
+#### Block not included in the oracle
+Although it is extremely difficult to generate a valid proof for a PegIn that has already been approved, as it would require achieving proof of work (PoW) for the block generation, we assume that this has been accomplished. 
+
+For this test, we created and confirmed a valid PegIn on the mainnet. However, the PegIn is valid only on the Bitcoin mainnet, not on the testnet. To achieve this, the proof is generated in the following way:
+
+```
+===========================================================
+Fetch and Parsing data from blockstream
+============================================================
+$ ./cli.sh fetch-data-from-blockstream "0x84228c55b75a7241481fc0c7313084848fe5e7540483ad800f6a240ed4130737"
+⠋ Fetch and Parse transaction data from blockstream started...Key 0x84228c55b75a7241481fc0c7313084848fe5e7540483ad800f6a240ed4130737 not found in repository. Downloading data...
+⠏ Fetch and Parse transaction data from blockstream started...Key 0x00000000000000000001b4b9f79123df985e564b11843c52e1262740f7cc732a not found in repository. Downloading data...
+⠼ Fetch and Parse transaction data from blockstream started...Key 0x000000000000000000001da061256cfff70b179946be82e6b1c395a3a51a7072 not found in repository. Downloading data...
+⠇ Fetch and Parse transaction data from blockstream started...Key 0x00000000000000000001b4b9f79123df985e564b11843c52e1262740f7cc732a not found in repository. Downloading data...
+⠼ Fetch and Parse transaction data from blockstream started...Key 0x84228c55b75a7241481fc0c7313084848fe5e7540483ad800f6a240ed4130737 not found in repository. Downloading data...
+⠇ Fetch and Parse transaction data from blockstream started...
+Blockstream data fetched and parsed successfully.
+JSON files generated at: /home/elmol/Documents/wakeup/bitsnark/grail-contracts/packages/agent-cli/data/merlin-demo/0x00000000000000000001b4b9f79123df985e564b11843c52e1262740f7cc732a_block.json , /home/elmol/Documents/wakeup/bitsnark/grail-contracts/packages/agent-cli/data/merlin-demo/0x84228c55b75a7241481fc0c7313084848fe5e7540483ad800f6a240ed4130737_transaction.json 
+✔ Fetch and Parse transaction data from blockstream completed successfully.
+Fetch and Parse transaction data from blockstream: 2.308s
+
+============================================================
+Generating PegIn proof inputs file
+============================================================
+$ ./cli.sh generate-pegin-proof-inputs "0x00000000000000000001b4b9f79123df985e564b11843c52e1262740f7cc732a" "0x84228c55b75a7241481fc0c7313084848fe5e7540483ad800f6a240ed4130737" "0x27ace467dafd4ba039039b7f735f4a92d502adf1fd6b425d36f9bb60a177854b" "0"
+⠋ Generate PegIn proof inputs file started...
+PegIn inputs file generated successfully.
+File path: /home/elmol/Documents/wakeup/bitsnark/grail-contracts/packages/agent-cli/data/merlin-demo/0x27ace467dafd4ba039039b7f735f4a92d502adf1fd6b425d36f9bb60a177854b_inputs.json
+✔ Generate PegIn proof inputs file completed successfully.
+Generate PegIn proof inputs file: 22.529ms
+
+============================================================
+Generating PegIn proof file
+============================================================
+$ ./cli.sh generate-pegin-proof "0x27ace467dafd4ba039039b7f735f4a92d502adf1fd6b425d36f9bb60a177854b"
+⠙ Generate PegIn proof started...
+Proof file path: /home/elmol/Documents/wakeup/bitsnark/grail-contracts/packages/agent-cli/data/merlin-demo/0x27ace467dafd4ba039039b7f735f4a92d502adf1fd6b425d36f9bb60a177854b_proof.json
+✔ Generate PegIn proof completed successfully.
+Generate PegIn proof: 58.967s
+```
+
+Then, it will attempt to mint using the mainnet valid proof for a valid PegIn, but on the testnet.
+
+```
+$ ./cli.sh perform-pegin "0x27ace467dafd4ba039039b7f735f4a92d502adf1fd6b425d36f9bb60a177854b" "0x00000000000000000001b4b9f79123df985e564b11843c52e1262740f7cc732a"
+⠦ Perform PegIn transaction started...Error performing PegIn transaction: Error: Exception while processing PegIn on blockchain, Error: Error: execution reverted (unknown custom error) (action="estimateGas", data="0x835549470000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000f426c6f636b206e6f7420666f756e640000000000000000000000000000000000", reason=null, transaction={ "data": "0xb37e111027ace467dafd4ba039039b7f735f4a92d502adf1fd6b425d36f9bb60a177854b00000000000000000001b4b9f79123df985e564b11843c52e1262740f7cc732a26e5a2e2b8eaa5c78b03921d0e2770703cf3b177aed50b5d57e39d7c88ec5e04187623762b653972007eb8a76935f64f151b26794d7cfa37967f2885ff2b97b806e4dbe7c064789dead616707efda64da08f4b9a278513f155253d17c551ac121eacfc130128c3a3180328011045f0b8b8b09421bfb4f28b175dfbdae6b6fedc0f8a426f7694f3561e839ea42d2ef5d763b5f8e2c04cae71e77619725ca658bf17d0f96b7a48c584e8d9cd3b96ca4e997652d4e153115f9971b4e71dba5d2c6e2980e46b722bee854f99a338b5ebec0ee0c078744de1d3958d62158cc0cae3ed0d36d6878946e147a9eec1a9545f1e125adacbc375a6ca09df6fabe417207583", "from": "0xAAfD7D37B78E245aC85a230e161b512b0140daF7", "to": "0xB00dAB5C8b4b561cCdb7F43f4853144A05A099B0" }, invocation=null, revert=null, code=CALL_EXCEPTION, version=6.13.3)
+    at AgentClient.pegin (/home/elmol/Documents/wakeup/bitsnark/grail-contracts/packages/agent-cli/src/agent-client.ts:42:19)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async AgentClientApp.performPegIn (/home/elmol/Documents/wakeup/bitsnark/grail-contracts/packages/agent-cli/src/agent-client-app.ts:232:20)
+    at async /home/elmol/Documents/wakeup/bitsnark/grail-contracts/packages/agent-cli/bin/cli.ts:137:26
+    at async executeWithSpinnerAndTiming (/home/elmol/Documents/wakeup/bitsnark/grail-contracts/packages/agent-cli/bin/cli.ts:14:5)
+    at async Command.<anonymous> (/home/elmol/Documents/wakeup/bitsnark/grail-contracts/packages/agent-cli/bin/cli.ts:135:7)
+✖ Perform PegIn transaction failed.
+Error: Exception while processing PegIn on blockchain, Error: Error: execution reverted (unknown custom error) (action="estimateGas", data="0x835549470000000000000000000000000000000000000000000000000000000000000020000000000000000000000000000000000000000000000000000000000000000f426c6f636b206e6f7420666f756e640000000000000000000000000000000000", reason=null, transaction={ "data": "0xb37e111027ace467dafd4ba039039b7f735f4a92d502adf1fd6b425d36f9bb60a177854b00000000000000000001b4b9f79123df985e564b11843c52e1262740f7cc732a26e5a2e2b8eaa5c78b03921d0e2770703cf3b177aed50b5d57e39d7c88ec5e04187623762b653972007eb8a76935f64f151b26794d7cfa37967f2885ff2b97b806e4dbe7c064789dead616707efda64da08f4b9a278513f155253d17c551ac121eacfc130128c3a3180328011045f0b8b8b09421bfb4f28b175dfbdae6b6fedc0f8a426f7694f3561e839ea42d2ef5d763b5f8e2c04cae71e77619725ca658bf17d0f96b7a48c584e8d9cd3b96ca4e997652d4e153115f9971b4e71dba5d2c6e2980e46b722bee854f99a338b5ebec0ee0c078744de1d3958d62158cc0cae3ed0d36d6878946e147a9eec1a9545f1e125adacbc375a6ca09df6fabe417207583", "from": "0xAAfD7D37B78E245aC85a230e161b512b0140daF7", "to": "0xB00dAB5C8b4b561cCdb7F43f4853144A05A099B0" }, invocation=null, revert=null, code=CALL_EXCEPTION, version=6.13.3)
+    at AgentClient.pegin (/home/elmol/Documents/wakeup/bitsnark/grail-contracts/packages/agent-cli/src/agent-client.ts:42:19)
+    at processTicksAndRejections (node:internal/process/task_queues:95:5)
+    at async AgentClientApp.performPegIn (/home/elmol/Documents/wakeup/bitsnark/grail-contracts/packages/agent-cli/src/agent-client-app.ts:232:20)
+    at async /home/elmol/Documents/wakeup/bitsnark/grail-contracts/packages/agent-cli/bin/cli.ts:137:26
+    at async executeWithSpinnerAndTiming (/home/elmol/Documents/wakeup/bitsnark/grail-contracts/packages/agent-cli/bin/cli.ts:14:5)
+    at async Command.<anonymous> (/home/elmol/Documents/wakeup/bitsnark/grail-contracts/packages/agent-cli/bin/cli.ts:135:7)
+Perform PegIn transaction: 1.371s
+```
+
+**ERROR:** `UIG Block not found`
+
+When attempting to execute the PegIn transaction on the testnet, the Bitcoin oracle rejects it because the block containing the transaction is not included in the oracle’s records for the testnet. This prevents the transaction from being processed and ERC20 tokens from being minted.
+
 ## Conclusion
 
 In this demo, we demonstrated the PegIn process from the Bitcoin testnet to the Merlin testnet blockchain. Assuming the agents had already co-created a pre-signed Bitcoin Taproot transaction and the BTC deposit to the Taproot address was completed, the requesting agent initiated the PegIn request, which was then confirmed by all agents. A zk-SNARK proof validated the transaction, finalizing the PegIn request and minting ERC20 tokens equivalent to the locked BTC.
+
+We also tested and demonstrated the failure scenarios to ensure the security of the PegIn process. This includes cases like an invalid zk-proof, where a user attempts to use a proof for another PegIn, and a transaction for a block not included in the Bitcoin oracle, such as when the PegIn was confirmed on the mainnet but attempted on the testnet. These checks ensure that only valid PegIn transactions can be processed and that security is maintained throughout the process.
