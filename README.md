@@ -81,7 +81,6 @@ Hardhat Ignition 🚀
 Deploying [ GrailBridgeDeployment ]
 
 Batch #1
-  Executed AgentRegistryModule#AgentRegistry
   Executed BitcoinOracleModule#BitcoinOracle
   Executed ContractRegistryModule#ContractRegistry
   Executed PeginVerifierModule#PeginVerifier
@@ -99,19 +98,19 @@ Batch #4
 
 Deployed Addresses
 
-AgentRegistryModule#AgentRegistry - 0xd3E3f2eD5fe3B0F3c25b0AdE87b1199E067F6487
-BitcoinOracleModule#BitcoinOracle - 0xa45C6D8E183CD42CD88ffb0f3B9b5A0BAACE6C15
-ContractRegistryModule#ContractRegistry - 0x285F58289e8B7c55F7133Eea03E68aC314D2dd50
-PeginVerifierModule#PeginVerifier - 0xDBDaFb8a288F7e0F956146b0179f39b7aBC850c3
-GrailBridgeDeployment#GrailBridge - 0xb4a29738862b26F537F1c2fc8A3706aD5606b58a
-GrailBridgeDeployment#ERC20BitSnark - 0xc74B4EB3De0d103AABbCa92D98a3653C99420e65
+AgentRegistryModule#AgentRegistry - 0x2751421Bb6Be92Df3c1c71b22fBda6fe4f6d809F
+BitcoinOracleModule#BitcoinOracle - 0x454ef0F8D285FCB61E6e53954d078410C006EdA7
+ContractRegistryModule#ContractRegistry - 0xe26731E32043ad0b538174D0372b91B695c5F262
+PeginVerifierModule#PeginVerifier - 0xFCFF9d87681DFf476482F4BaE4DE0Ae2b916eD48
+GrailBridgeDeployment#GrailBridge - 0xB00dAB5C8b4b561cCdb7F43f4853144A05A099B0
+GrailBridgeDeployment#ERC20BitSnark - 0xB86D9E9D575C8E27f63e8572D9F21Ffa8efE6950
 ```
 
 ### Block Headers Submission
 
 ```bash
 $ npx hardhat oracle-submit-headers --file ./scripts/block-headers-merlin.json --network merlinTestnet
-BitcoinOracle contract at address: 0xa45C6D8E183CD42CD88ffb0f3B9b5A0BAACE6C15
+BitcoinOracle contract at address: 0x454ef0F8D285FCB61E6e53954d078410C006EdA7
 Transaction submitted. Waiting for confirmation...
 Transaction confirmed.
 ```
@@ -167,8 +166,8 @@ OUTPUT_INDEX=0
 ## MERLIN TESTNET
 RPC_HOST='https://testnet-rpc.merlinchain.io'
 PRIVATE_KEY=xxxxx
-GRAIL_BRIDGE_ADDRESS=0xb4a29738862b26F537F1c2fc8A3706aD5606b58a
-ERC20_ADDRESS=0xc74B4EB3De0d103AABbCa92D98a3653C99420e65
+GRAIL_BRIDGE_ADDRESS=0xB00dAB5C8b4b561cCdb7F43f4853144A05A099B0
+ERC20_ADDRESS=0xB86D9E9D575C8E27f63e8572D9F21Ffa8efE6950
 DATA_PATH=data/merlin-demo
 BLOCKSTREAM_URL=https://blockstream.info/testnet/api/ #TESTNET
 ```
@@ -184,8 +183,8 @@ $./cli.sh show-config
 Environment Configuration: {
   "private_key": "xxxx",
   "rpc_host": "https://testnet-rpc.merlinchain.io",
-  "grail_bridge_address": "0xb4a29738862b26F537F1c2fc8A3706aD5606b58a",
-  "erc20_address": "0xc74B4EB3De0d103AABbCa92D98a3653C99420e65",
+  "grail_bridge_address": "0xB00dAB5C8b4b561cCdb7F43f4853144A05A099B0",
+  "erc20_address": "0xB86D9E9D575C8E27f63e8572D9F21Ffa8efE6950",
   "default_path": "data/merlin-demo",
   "blockstream_url": "https://blockstream.info/testnet/api/"
 }
@@ -201,7 +200,8 @@ ERC20 Balance: 0.0 BTC
 
 **Bitcoin Testnet Transaction ID**: [`ed470838b312d5984304b8ca4734e223235d115cfa5e0a368b907287732110b8`](https://blockstream.info/testnet/tx/ed470838b312d5984304b8ca4734e223235d115cfa5e0a368b907287732110b8)
 
-![bitcoin-tx](https://github.com/user-attachments/assets/09c4608a-c124-4814-966c-ae0829868fcb)
+![bitcoin-tx](https://github.com/user-attachments/assets/efbfd3f5-883e-4544-9364-efce775c7cc1)
+
 
 ### Demo Script Execution
 ```
@@ -218,11 +218,11 @@ ERC20 Balance: 0.0 BTC
 Creating a PegIn request using the JSON file
 ============================================================
 $ ./cli.sh create-pegin -f "./data/merlin-demo/pegin_request.json"
-⠼ Create PegIn request started...
+⠏ Create PegIn request started...
 PegIn request created successfully.
 Request ID: 0xf37cbba1f066ec233d3070728cd894cc466263a79045b8f9ca198bea8b81d0a1
 ✔ Create PegIn request completed successfully.
-Create PegIn request: 9.177s
+Create PegIn request: 10.408s
 
 ============================================================
 Confirming the PegIn request with all agents
@@ -238,7 +238,7 @@ $ ./cli.sh fetch-data-from-blockstream "0xed470838b312d5984304b8ca4734e223235d11
 Blockstream data fetched and parsed successfully.
 JSON files generated at: /home/elmol/Documents/wakeup/bitsnark/grail-contracts/packages/agent-cli/data/merlin-demo/0x00000000040afd9372ae26485bdaee67b391579bdd40663d5ca21636d0beabb0_block.json , /home/elmol/Documents/wakeup/bitsnark/grail-contracts/packages/agent-cli/data/merlin-demo/0xed470838b312d5984304b8ca4734e223235d115cfa5e0a368b907287732110b8_transaction.json 
 ✔ Fetch and Parse transaction data from blockstream completed successfully.
-Fetch and Parse transaction data from blockstream: 12.255ms
+Fetch and Parse transaction data from blockstream: 12.73ms
 
 ============================================================
 Generating PegIn proof inputs file
@@ -248,7 +248,7 @@ $ ./cli.sh generate-pegin-proof-inputs "0x00000000040afd9372ae26485bdaee67b39157
 PegIn inputs file generated successfully.
 File path: /home/elmol/Documents/wakeup/bitsnark/grail-contracts/packages/agent-cli/data/merlin-demo/0xf37cbba1f066ec233d3070728cd894cc466263a79045b8f9ca198bea8b81d0a1_inputs.json
 ✔ Generate PegIn proof inputs file completed successfully.
-Generate PegIn proof inputs file: 24.658ms
+Generate PegIn proof inputs file: 24.109ms
 
 ============================================================
 Generating PegIn proof file
@@ -257,17 +257,17 @@ $ ./cli.sh generate-pegin-proof "0xf37cbba1f066ec233d3070728cd894cc466263a79045b
 ⠏ Generate PegIn proof started...
 Proof file path: /home/elmol/Documents/wakeup/bitsnark/grail-contracts/packages/agent-cli/data/merlin-demo/0xf37cbba1f066ec233d3070728cd894cc466263a79045b8f9ca198bea8b81d0a1_proof.json
 ✔ Generate PegIn proof completed successfully.
-Generate PegIn proof: 1:00.828 (m:ss.mmm)
+Generate PegIn proof: 1:00.193 (m:ss.mmm)
 
 ============================================================
 Performing the PegIn transaction on the blockchain
 ============================================================
 $ ./cli.sh perform-pegin "0xf37cbba1f066ec233d3070728cd894cc466263a79045b8f9ca198bea8b81d0a1" "0x00000000040afd9372ae26485bdaee67b391579bdd40663d5ca21636d0beabb0"
-⠹ Perform PegIn transaction started...
+⠴ Perform PegIn transaction started...
 PegIn transaction performed successfully.
 Result: 0xf37cbba1f066ec233d3070728cd894cc466263a79045b8f9ca198bea8b81d0a1,20000,0xAAfD7D37B78E245aC85a230e161b512b0140daF7,2,2
 ✔ Perform PegIn transaction completed successfully.
-Perform PegIn transaction: 10.608s
+Perform PegIn transaction: 15.742s
 
 ============================================================
 Showing the ERC20 balance after PegIn transaction
@@ -282,8 +282,7 @@ Local CLI integration test completed successfully!
 ```
 
 #### Screencast Record
-[merlin-demo-execution.webm](https://github.com/user-attachments/assets/ddae1b23-519f-4a76-9c4c-03c2255af22b)
-
+[merlin-demo-execution.webm](https://github.com/user-attachments/assets/c0cfc1b4-c05a-433a-a67f-3630b8de9c23)
 
 ### Balance ERC20 check
 
@@ -299,8 +298,8 @@ ERC20 Balance: 0.0002 BTC
 
 You can view the PegIn transaction on the Merlin chain explorer:
 
-https://testnet-scan.merlinchain.io/tx/0x3603358a68ffc7f511f65a160428aa3e572ffa41a83c5fd15d91972184da5eab
-
+https://testnet-scan.merlinchain.io/tx/0x872dbe30829dd704a25269be2e579d48df4245354dfaa405e084463be26a3eb1
+![merlin-tx](https://github.com/user-attachments/assets/6526ed77-2631-4354-9575-61b168124587)
 
 ## Conclusion
 
